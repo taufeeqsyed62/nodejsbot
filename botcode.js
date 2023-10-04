@@ -4,9 +4,11 @@ const sqlite3 = require('sqlite3');
 // Create or connect to the database
 const db = new sqlite3.Database('subjects.db');
 
+// Create tables if they don't exist
 db.run(`
   CREATE TABLE IF NOT EXISTS subjects (
     id INTEGER PRIMARY KEY,
+    year TEXT,
     name TEXT,
     notes TEXT,
     syllabus TEXT,
@@ -20,49 +22,41 @@ db.run(`
   }
 });
 
-const subjectsData = [
-  ['COMPUTER GRAPHICS', 'Link to notes for Subject 1', 'Link to syllabus for Subject 1', 'Link to assignments for Subject 1', 'Link to previous year questions for Subject 1'],
-  ['FUNDAMENTAL OF DATA', 'Link to notes for Subject 2', 'Link to syllabus for Subject 2', 'Link to assignments for Subject 2', 'Link to previous year questions for Subject 2'],
-  // Add more subjects and resources
+// Define subjects data for each year
+const firstYearSubjectsData = [
+  ['SME', 'Link to notes for SME', 'Link to syllabus for SME', 'Link to assignments for SME', 'Link to previous year questions for SME'],
+  ['CHEMISTRY', 'Link to notes for CHEMISTRY', 'Link to syllabus for CHEMISTRY', 'Link to assignments for CHEMISTRY', 'Link to previous year questions for CHEMISTRY'],
+  ['PHYSICS', 'Link to notes for PHYSICS', 'Link to syllabus for PHYSICS', 'Link to assignments for PHYSICS', 'Link to previous year questions for PHYSICS'],
+  ['MATHS1', 'Link to notes for MATHS1', 'Link to syllabus for MATHS1', 'Link to assignments for MATHS1', 'Link to previous year questions for MATHS1'],
+  ['MATHS2', 'Link to notes for MATHS2', 'Link to syllabus for MATHS2', 'Link to assignments for MATHS2', 'Link to previous year questions for MATHS2'],
+  ['PAPS', 'Link to notes for PAPS', 'Link to syllabus for PAPS', 'Link to assignments for PAPS', 'Link to previous year questions for PAPS'],
+  ['EGR&AUTOCAD', 'Link to notes for EGR&AUTOCAD', 'Link to syllabus for EGR&AUTOCAD', 'Link to assignments for EGR&AUTOCAD', 'Link to previous year questions for EGR&AUTOCAD'],
+  ['BXE', 'Link to notes for BXE', 'Link to syllabus for BXE', 'Link to assignments for BXE', 'Link to previous year questions for BXE'],
+  ['BEE', 'Link to notes for BEE', 'Link to syllabus for BEE', 'Link to assignments for BEE', 'Link to previous year questions for BEE'],
+  ['EM', 'Link to notes for EM', 'Link to syllabus for EM', 'Link to assignments for EM', 'Link to previous year questions for EM'],
+  // Add more subjects for the first year
 ];
 
-const insertSubjectData = db.prepare('INSERT INTO subjects (name, notes, syllabus, assignments, previous_year_questions) VALUES (?, ?, ?, ?, ?)');
+const secondYearSubjectsData = [
+  // Define subjects for the second year
+  ['COMPUTER GRAPHICS', 'Link to notes for Subject 1', 'Link to syllabus for Subject 1', 'Link to assignments for Subject 1', 'Link to previous year questions for Subject 1'],
+  ['FUNDAMENTAL OF DATA', 'Link to notes for Subject 2', 'Link to syllabus for Subject 2', 'Link to assignments for Subject 2', 'Link to previous year questions for Subject 2'],
+];
 
-subjectsData.forEach((subject) => {
-  insertSubjectData.run(subject);
-});
+// Insert subjects data into the database
+const insertSubjectData = db.prepare('INSERT INTO subjects (year, name, notes, syllabus, assignments, previous_year_questions) VALUES (?, ?, ?, ?, ?, ?)');
 
-const getSubjectInfo = (subjectId, callback) => {
-  db.get('SELECT * FROM subjects WHERE id = ?', [subjectId], (err, row) => {
-    if (err) {
-      console.error(err.message);
-      callback(null);
-    } else {
-      callback(row);
-    }
+const insertSubjects = (year, subjectsData) => {
+  subjectsData.forEach((subject) => {
+    insertSubjectData.run([year, ...subject]);
   });
 };
 
-const updateSubject = (subjectId, notes, syllabus, assignments, previousYearQuestions) => {
-  db.run(
-    'UPDATE subjects SET notes = ?, syllabus = ?, assignments = ?, previous_year_questions = ? WHERE id = ?',
-    [notes, syllabus, assignments, previousYearQuestions, subjectId],
-    (err) => {
-      if (err) {
-        console.error(err.message);
-      }
-    }
-  );
-};
+// Insert subjects data for each year
+insertSubjects('First year', firstYearSubjectsData);
+insertSubjects('Second year', secondYearSubjectsData);
 
-const deleteSubject = (subjectId) => {
-  db.run('DELETE FROM subjects WHERE id = ?', [subjectId], (err) => {
-    if (err) {
-      console.error(err.message);
-    }
-  });
-};
-
+// Rest of your code...
 const subjects = {
   1: {
     name: 'COMPUTER GRAPHICS',
@@ -80,7 +74,6 @@ const subjects = {
   },
   // Add more subjects
 };
-
 const token = '6312810364:AAFCpsbOAEOwTuDt2t4ThdPqE2sQtO1GQOg';
 const bot = new TelegramBot(token, { polling: true });
 
@@ -97,6 +90,7 @@ bot.onText(/\/select_subject/, (msg) => {
       one_time_keyboard: true,
       resize_keyboard: true,
     },
+
   };
   bot.sendMessage(chatId, 'Please select a subject:', keyboard);
 });
